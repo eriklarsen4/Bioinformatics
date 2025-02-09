@@ -1,4 +1,4 @@
-Bioinformatics
+Itch Heatmaps
 ================
 Erik Larsen
 7/17/2021
