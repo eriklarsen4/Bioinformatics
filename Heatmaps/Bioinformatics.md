@@ -23,7 +23,7 @@ Erik Larsen
 
 - The RNA-sequencing data processing pipeline for this analysis went as follows:
 
-    1.  `Illumina FASTQ files` were pseudoaligned with the `Salmon` algorithm
+    1.  Short-read `Illumina FASTQ files` were pseudoaligned with the `Salmon` algorithm
   
     2.  run through `Usegalaxy.org`’s [DESeq2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-014-0550-8) wrapper algorithm to obtain `DGEA files`
     
@@ -39,7 +39,7 @@ Erik Larsen
     Script](https://github.com/eriklarsen4/RNAseq/blob/master/Heatmaps/Bioinformatics%20Script.R).
 
 -   Standalone analyses or tutorials, including volcano plotting, and
-    `gene ontology` and `pathway analysis` can be found in other
+    `gene ontology` and `gene set enrichment analysis` can be found in other
     `R/Github Markdown` files and scripts, [Gene Ontology Analysis
     Snippet](https://github.com/eriklarsen4/RNAseq/blob/master/GO%20Analysis/GO-Analysis.md)
     and [Volcano plot tutorial R
@@ -76,16 +76,12 @@ library(enrichR) # Taps the Enrichr database; much better utility than the websi
 
   # For data wrangling (slicing/adding/removing/melting/rearranging dataframes and their columns and rows):
 library(tidyverse)
-# library(plyr)
-# library(dplyr)
-# library(reshape2)
 
 library(readr) # For importing data and files
-library(stringr) # Awesome for manipulating strings
+library(stringr) # For manipulating strings
 
   # Databases for downstream analyses of lists via gene ontology:
 library(biomaRt)
-#library(org.Hs.eg.db)
 library(org.Mm.eg.db)
 library(GO.db)
 
@@ -163,7 +159,7 @@ source("~/GitHub/RNAseq/Functions/Enrichr Analysis Function.R")
 
 ## Data import
 
-Import the adult `DRG DESeq2 file`
+Import the `DRG DESeq2 file` (adult mouse DRG bulk RNA-seq results)
 
 ``` r
 aDRG = read.csv("~/GitHub/RNAseq/Data/DESeq2 Expression Results.csv")
@@ -171,37 +167,40 @@ aDRG = read.csv("~/GitHub/RNAseq/Data/DESeq2 Expression Results.csv")
   # Subset genes that went undetected or were outliers in terms of counts;
   # new dataframe should not contain any NAs in p-value columns
 
-aDRG3 = subset(aDRG, (!is.na(aDRG[,"AdjP"])))
+aDRG = subset(aDRG, (!is.na(aDRG[,"AdjP"])))
 
 
  # Filter the DEGs by removing rRNAs and mitochondrial tRNAs, along with pseudogenes, etc.
 
-aDRG9 = aDRG3 %>% filter(!grepl(GeneID,
+aDRG = aDRG %>% filter(!grepl(GeneID,
                                 pattern = "Rps.+.?$|RP.+.?$|Rpl.+.?$|MRPL.+.?$|Mrpl.+.?$|MRPS.+.?$|Mrps.+.?$|.*Rik.+$|.*Rik$|Gm.+.?$|^[A-Z]+[A-Z].+.?$|^[0-9]+.+.?$"))
 #mt.+.?$|  <-- string identifier for mitochondrial tRNAs
 
 
   # Create a column in the DESeq2 dataframe that scales the Adjusted P-value by log-base 10
 
-aDRG9$log10ADJP = -log10(aDRG9$AdjP)
+aDRG = aDRG %>%
+    dplyr::mutate(log10ADJP = -log10(AdjP))
 
 
   # Add a column to the DEG dataset that contains a string, describing whether the gene is differentially expressed
     # First create the column and use Gene IDs as place-holders
 
-aDRG9$g.o.i. = aDRG9$GeneID
+aDRG = aDRG %>%
+    dplyr::mutate(g.o.i. = GeneID)
 
 
-  # Replace DEGs with the string, "DEGs"
+  # Replace DEGs with the string, "DEGs"; remaining genes with 'Non-DEGs'
 
-aDRG9$g.o.i.[which(aDRG9$AdjP <= 0.05)]= "DEGs"
+aDRG = aDRG9 %>%
+    dplyr::mutate(g.o.i. = case_when(AdjP <= 0.05 ~ 'DEGs',
+                                    TRUE ~ 'Non-DEGs'))
 
-
-  # Replace the remaining genes with "Non-DEGs"
-
-aDRG9$g.o.i.[which(aDRG9$AdjP >= 0.05)]= "Non-DEGs"
-
-aDRG_DEG_list = c(aDRG9$GeneID[which(aDRG9$g.o.i. == "DEGs")])
+aDRG_DEG_list = aDRG %>%
+    dplyr::filter(g.o.i. == 'DEGs') %>%
+    dplyr::select(GeneID) %>%
+    unlist() %>%
+    as.character()
 ```
 
 # Query the Enrichr db
