@@ -54,20 +54,16 @@ Upload the packages that include `ggplot2` ("Grammar of Graphics")
 to aesthetic properties (e.g. colors to gene symbols)
 
 ``` r
-  ## Install the tidyverse and reshape2 packages to your default R library if not already done
+  ## Install the tidyverse package to your default R library if not already done
     ## For example
 #install.packages("tidyverse")
-#install.packages("reshape2")
 
   # Load the packages from your default R package library
 # For data wrangling (manipulating dataframes):
 
 library(tidyverse)
-library(plyr)
-library(dplyr)
-library(reshape2)
 
-library(ggplot2) # For awesome, publication-quality graphs
+library(ggplot2) # For publication-quality graphs
 library(ggrepel) # For labeling mapped data on those plots
 library(stats4)
 library(readr) # For importing data and files
@@ -110,48 +106,48 @@ aDRG3 = subset(aDRG, (!is.na(aDRG[,"AdjP"]))) # notice the new variable, "aDRG3"
 
  # Filter the DEGs by removing rRNAs and mitochondrial tRNAs
 
-aDRG9 = aDRG3 %>%
-  filter(!grepl(aDRG3$GeneID, pattern = "Rps.+.?$|RP.+.?$|Rpl.+.?$|MRPL.+.?$|Mrpl.+.?$|MRPS.+.?$|Mrps.+.?$|.*Rik.+$|.*Rik$|Gm.+.?$|^[A-Z]+[A-Z].+.?$|^[0-9]+.+.?$"))
+aDRG3 = aDRG3 %>%
+  dplyr::filter(!grepl(aDRG3$GeneID, pattern = "Rps.+.?$|RP.+.?$|Rpl.+.?$|MRPL.+.?$|Mrpl.+.?$|MRPS.+.?$|Mrps.+.?$|.*Rik.+$|.*Rik$|Gm.+.?$|^[A-Z]+[A-Z].+.?$|^[0-9]+.+.?$"))
 #mt.+.?$|  <-- string identifier for mitochondrial tRNAs
 
 
   # Add a column to the DEG dataset that contains a string, describing whether the gene is differentially expressed
     # First create the column and use Gene IDs as place-holders
 
-aDRG9$labs = aDRG9$GeneID
+aDRG3$labs = aDRG3$GeneID
 
 
   # Replace DEGs with the string, "DEGs"
 
-aDRG9$labs[which(aDRG9$AdjP <= 0.05)]= "DEGs"
+aDRG3$labs[which(aDRG3$AdjP <= 0.05)]= "DEGs"
 
 
   # Replace the remaining genes with "Non-DEGs"
 
-aDRG9$labs[which(aDRG9$AdjP >= 0.05)]= "Non-DEGs"
+aDRG3$labs[which(aDRG3$AdjP >= 0.05)]= "Non-DEGs"
 
-aDRG_DEG_list = c(aDRG9$GeneID[which(aDRG9$labs == "DEGs")])
+aDRG_DEG_list = c(aDRG3$GeneID[which(aDRG3$labs == "DEGs")])
 ```
 
 How many genes are significantly different from WT expression?
 
 ``` r
 length(
-  which(aDRG9$AdjP <= 0.10) ) ## For FDR <= 0.1
+  which(aDRG3$AdjP <= 0.10) ) ## For FDR <= 0.1
 ```
 
     ## [1] 535
 
 ``` r
 length(
-  which(aDRG9$AdjP <= 0.05) ) ## For FDR <= 0.05
+  which(aDRG3$AdjP <= 0.05) ) ## For FDR <= 0.05
 ```
 
     ## [1] 376
 
 ``` r
 length( 
-  which(aDRG9$AdjP <= 0.01) ) ## For FDR <= 0.01
+  which(aDRG3$AdjP <= 0.01) ) ## For FDR <= 0.01
 ```
 
     ## [1] 205
@@ -164,9 +160,9 @@ Pathway analysis is an attempt to find broader meaning of the consequences of th
 (see [GO Analysis.md](https://github.com/eriklarsen4/RNAseq/blob/master/GO%20Analysis/GO-Analysis.md) )
 
 ``` r
-HITS.01 = subset(aDRG9, aDRG9$AdjP <= 0.01)
-HITS.05 = subset(aDRG9, aDRG9$AdjP <= 0.05)
-HITS.10 = subset(aDRG9, aDRG9$AdjP <= 0.10)
+HITS.01 = subset(aDRG3, aDRG3$AdjP <= 0.01)
+HITS.05 = subset(aDRG3, aDRG3$AdjP <= 0.05)
+HITS.10 = subset(aDRG3, aDRG3$AdjP <= 0.10)
 
 
   # Create a new data frame of the average reads from both genotypes of genes with an Adjusted P-value < 0.05
@@ -185,7 +181,7 @@ Transform the `Adjusted P-values` so that they are integers and are
 somewhat shrunk to fit for viewing
 
 ``` r
-aDRG9$log10ADJP = -log10(aDRG9$AdjP)
+aDRG3$log10ADJP = -log10(aDRG3$AdjP)
 ```
 
 Create a new column to use for added visualization insight. Totally arbitrary, but I called them
@@ -195,12 +191,12 @@ Create a new column to use for added visualization insight. Totally arbitrary, b
   # Make the new column a column of characters.
     # Easiest way is to just use ' "" ' or another column already populated by strings (characters)
 
-aDRG9$g.o.i. = aDRG9$GeneID
+aDRG3$g.o.i. = aDRG3$GeneID
 
 
     # Alternatively, you can use dplyr like so (uncomment, aka remove the hashtags, to execute the command):
 
-# aDRG9 = aDRG9 %>%
+# aDRG3 = aDRG3 %>%
 #  dplyr::mutate(g.o.i. = GeneID)
 
   # Fill the points with appropriately-indexed data;
@@ -211,12 +207,12 @@ aDRG9$g.o.i. = aDRG9$GeneID
     # where AdjP values are less than or equal to 0.05; "Non-D.E.G.s" to the rows of the g.o.i. column with AdjP values
     # greater than 0.05
   
-aDRG9$g.o.i.[which(aDRG9$AdjP <= 0.05)] = "D.E.G.s"
+aDRG3$g.o.i.[which(aDRG3$AdjP <= 0.05)] = "D.E.G.s"
 
-aDRG9$g.o.i.[which(aDRG9$AdjP > 0.05)] = "Non-D.E.G.s"
+aDRG3$g.o.i.[which(aDRG3$AdjP > 0.05)] = "Non-D.E.G.s"
 
   # dplyr alternative:
-#aDRG9 = aDRG9 %>%
+#aDRG3 = aDRG3 %>%
 #  dplyr::mutate(g.o.i. = case_when(AdjP <= 0.05 ~ "D.E.G.s",
 #                                    TRUE ~ "Non-D.E.G.s"))
 ```
@@ -228,7 +224,7 @@ plots.
   # Create the column, "labs"; by initializing the column values with "",
   # any genes containing only "" will not show up in the volcano plot
 
-aDRG9$labs = ""
+aDRG3$labs = ""
 ```
 
 Label only these selected items; adjust for each experiment; for the
@@ -236,17 +232,17 @@ current example and a more global volcano plot, highlight the most
 extreme data points on the plot.
 
 ``` r
-ix_label1 = which(aDRG9$log10ADJP > 50)
+ix_label1 = which(aDRG3$log10ADJP > 50)
 
 
   # Fill in the labels
 
-aDRG9$labs[c(ix_label1)] = aDRG9$GeneID[c(ix_label1)]
+aDRG3$labs[c(ix_label1)] = aDRG3$GeneID[c(ix_label1)]
 ```
 
 ## First volcano plot
 
-+ Use the `aDRG9` dataframe as the data to plot
++ Use the `aDRG3` dataframe as the data to plot
 + Set the `x-axis` variable as log-base 2 fold change (`log2FC`)
 + Set the `y-axis` as log-base 10 Adjusted P-value (`log10ADJP`)
 + Set the points to be colored by the `g.o.i.` column previously created
@@ -256,19 +252,19 @@ Subset the data by each different group within that g.o.i. column
 ``` r
   # Find axis limits
 
-min(aDRG9$log2.FC.)
+min(aDRG3$log2.FC.)
 ```
 
     ## [1] -3.578847
 
 ``` r
-max(aDRG9$log2.FC.)
+max(aDRG3$log2.FC.)
 ```
 
     ## [1] 1.455933
 
 ``` r
-max(aDRG9$log10ADJP)
+max(aDRG3$log10ADJP)
 ```
 
     ## [1] 127.9469
@@ -293,15 +289,15 @@ Create the plot, and save it as a variable. Add layers:
 -   use `scale_color_manual` to map color to the appropriate data points
 
 ``` r
-vol1 = ggplot(data = aDRG9) + 
-  geom_point(data = subset(aDRG9, g.o.i. == "Non-D.E.G.s"),
+vol1 = ggplot(data = aDRG3) + 
+  geom_point(data = subset(aDRG3, g.o.i. == "Non-D.E.G.s"),
              aes(x = log2.FC., y = log10ADJP, color = g.o.i.), alpha = 0.1) +
-  geom_point(data = subset(aDRG9, g.o.i. == "D.E.G.s"),
+  geom_point(data = subset(aDRG3, g.o.i. == "D.E.G.s"),
              aes(x = log2.FC., y = log10ADJP, color = g.o.i.), alpha = 0.3) +
   coord_cartesian(xlim = c(min(aDRG$log2.FC.),
-                           max(aDRG9$log2.FC.)),
+                           max(aDRG3$log2.FC.)),
                   ylim = c(0, max(aDRG9$log10ADJP))) +
-  geom_hline(yintercept = min(aDRG9$log10ADJP[which(aDRG9$g.o.i. == "D.E.G.s")]),
+  geom_hline(yintercept = min(aDRG3$log10ADJP[which(aDRG3$g.o.i. == "D.E.G.s")]),
              linetype = "dashed",
              color = "firebrick") +
   geom_text(x = -3, y = 4,
@@ -319,11 +315,11 @@ vol1 = ggplot(data = aDRG9) +
 ``` r
   # Overwrite the ggplot variable, adding labels
 
-vol1 = vol1 + geom_text_repel(data = aDRG9,
-                              x = aDRG9$log2.FC.,
-                              y = aDRG9$log10ADJP,
+vol1 = vol1 + geom_text_repel(data = aDRG3,
+                              x = aDRG3$log2.FC.,
+                              y = aDRG3$log10ADJP,
                               color = "black",
-                              aes(label = aDRG9$labs),
+                              aes(label = aDRG3$labs),
                               max.overlaps = Inf) 
 ```
 
@@ -344,25 +340,25 @@ Adding a little more specific data..
 ``` r
   # Re-set the mapping columm
 
-aDRG9$g.o.i. = ""
+aDRG3$g.o.i. = ""
 
 
   # Fill the points with appropriately indexed data:
     # Notable pruriceptor genes defined as being "genes of interest", with ADJPs of <= 0.05
 
-aDRG9$g.o.i.[
+aDRG3$g.o.i.[
   c(2,5,8,9,13,14,20,30,33,44,51,69,75,95,112,122,136,192,230,248,327,328,329,331)]= "Itch-related D.E.G.s"
 
 
     # Fill the DEGs not related to itch
 
-aDRG9$g.o.i.[c(1:376)][
+aDRG3$g.o.i.[c(1:376)][
   -c(2,5,8,9,13,14,20,30,33,44,51,69,75,95,112,122,136,192,230,248,327,328,329,331)] = "D.E.G.s"
 
 
     # Fill the rest (Non-DEGs)
 
-aDRG9$g.o.i.[which(aDRG9$AdjP > 0.05)] = "Non-D.E.G.s"
+aDRG3$g.o.i.[which(aDRG3$AdjP > 0.05)] = "Non-D.E.G.s"
 ```
 
 Add new labels
@@ -370,9 +366,9 @@ Add new labels
 ``` r
   # Create a new "labs" column, though we could re-use the old one
 
-aDRG9$labs2 = ""
+aDRG3$labs2 = ""
 
-aDRG9$labs2[c(2,5,8,9,13,20,30,51,112,331)] = aDRG9$GeneID[c(2,5,8,9,13,20,30,51,112,331)]
+aDRG3$labs2[c(2,5,8,9,13,20,30,51,112,331)] = aDRG3$GeneID[c(2,5,8,9,13,20,30,51,112,331)]
 ```
 
 + Store the new graph as a new variable (*vol2*)
@@ -380,15 +376,15 @@ aDRG9$labs2[c(2,5,8,9,13,20,30,51,112,331)] = aDRG9$GeneID[c(2,5,8,9,13,20,30,51
 + zoom in
 
 ``` r
-vol2 = ggplot(data = aDRG9) + 
-  geom_point(data = subset(aDRG9, g.o.i. == "Non-D.E.G.s"),
+vol2 = ggplot(data = aDRG3) + 
+  geom_point(data = subset(aDRG3, g.o.i. == "Non-D.E.G.s"),
              aes(x = log2.FC., y = log10ADJP, color = g.o.i.), alpha = 0.1) +
-  geom_point(data = subset(aDRG9, g.o.i. == "D.E.G.s"),
+  geom_point(data = subset(aDRG3, g.o.i. == "D.E.G.s"),
              aes(x = log2.FC., y = log10ADJP, color = g.o.i.), alpha = 0.3) +
-  geom_point(data = subset(aDRG9, g.o.i. == "Itch-related D.E.G.s"),
+  geom_point(data = subset(aDRG3, g.o.i. == "Itch-related D.E.G.s"),
              aes(x = log2.FC., y = log10ADJP, color = g.o.i.), alpha = 0.9) +
   coord_cartesian(xlim = c(-3.09,1.6), ylim = c(0,52)) +
-  geom_hline(yintercept = min(aDRG9$log10ADJP[which(aDRG9$g.o.i. == "D.E.G.s")]),
+  geom_hline(yintercept = min(aDRG3$log10ADJP[which(aDRG3$g.o.i. == "D.E.G.s")]),
              linetype = "dashed",
              color = "firebrick") +
   geom_text(x = -3, y = 2.5,
@@ -407,11 +403,11 @@ vol2 = ggplot(data = aDRG9) +
 ``` r
   # Overwrite the new ggplot variable, adding the new labels
 
-vol2 = vol2 + geom_text_repel(data = aDRG9,
-                              x = aDRG9$log2.FC.,
-                              y = aDRG9$log10ADJP,
+vol2 = vol2 + geom_text_repel(data = aDRG3,
+                              x = aDRG3$log2.FC.,
+                              y = aDRG3$log10ADJP,
                               color = "black",
-                              aes(label = aDRG9$labs2), 
+                              aes(label = aDRG3$labs2), 
                               max.overlaps = Inf)
 ```
 
