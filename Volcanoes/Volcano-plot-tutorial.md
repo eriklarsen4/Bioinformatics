@@ -8,7 +8,7 @@ Erik Larsen
 I developed the following code as a tutorial for graphical analysis of short-read, `Illumina` transcriptomic data in `Dr. Martha Bhattacharya`'s lab at UA. For more details on the background, see [here](https://github.com/eriklarsen4/RNAseq/blob/master/Heatmaps/Bioinformatics.md).
 
 The plots, generated with the [ggplot2 R
-package](https://cran.r-project.org/package=ggplot2) are standard for `differential gene expression analysis` ("`DEA`" or "`GSEA`"), but I've also added a bit more customization.
+package](https://cran.r-project.org/package=ggplot2) are standard for `differential gene expression analysis` ("`DEA`") or gene set enrichment analysis ("`GSEA`" or gene ontology analysis), but I've also added a bit more customization.
 
 This `Github Markdown` is a generic tutorial for those less-experienced with `R` and/or plotting and deriving insights from RNA-seq data.
 
@@ -157,7 +157,7 @@ Adjusted P-values &lt; 0.05 for use in pathway analysis tools.
 
 Pathway analysis is an attempt to find broader meaning of the consequences of the mutation.
 
-(see [GO Analysis.md](https://github.com/eriklarsen4/RNAseq/blob/master/GO%20Analysis/GO-Analysis.md) )
+(another markdown coming soon)
 
 ``` r
 HITS.01 = subset(aDRG3, aDRG3$AdjP <= 0.01)
